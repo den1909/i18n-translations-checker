@@ -64,6 +64,7 @@ if (args.includes("--init")) {
   const asJson = args.includes("--json");
   const translateMissing = args.includes("--translate-missing");
   const translateEmpty = args.includes("--translate-empty");
+  const pruneUnused = args.includes("--prune-unused");
 
   if ((translateMissing || translateEmpty) && (!config.deepl || !config.deepl.enabled || !config.deepl.apiKey)) {
     console.log("ℹ️ DeepL translation requested but disabled or missing apiKey in config.deepl.");
@@ -72,6 +73,10 @@ if (args.includes("--init")) {
   // If JSON output, compute details without noisy logs
   if (asJson) {
     // Apply optional fixes first so the report reflects the latest state
+    if (pruneUnused) {
+      const { pruneAllUnusedKeys } = require("../lib/check");
+      pruneAllUnusedKeys(config.i18nPath, config.srcPath, () => {});
+    }
     if (fix || addMissing || translateMissing || translateEmpty) {
       await compareTranslations(
         config.i18nPath,
@@ -171,3 +176,7 @@ if (args.includes("--init")) {
     console.log("\n✅ All checks passed!");
   }
 })();
+  if (pruneUnused) {
+    const { pruneAllUnusedKeys } = require("../lib/check");
+    pruneAllUnusedKeys(config.i18nPath, config.srcPath, console.log);
+  }
