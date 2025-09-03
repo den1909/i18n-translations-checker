@@ -27,6 +27,20 @@ if (args.includes("--init")) {
     srcPath: "./src",
     i18nPath: "./public/i18n",
     referenceLang: "en.json",
+    deepl: {
+      enabled: false,
+      apiKey: "",
+      useFreeApi: true,
+      sourceLang: "EN",
+      targetLangMap: {
+        "de.json": "DE",
+        "fr.json": "FR"
+      },
+      formality: "default",
+      preserveFormatting: true,
+      splitSentences: "1",
+      timeoutMs: 15000
+    },
     hardcoded: { enabled: true },
   };
 
@@ -48,9 +62,32 @@ if (args.includes("--init")) {
   const noHardcoded = args.includes("--no-hardcoded");
   const noUnused = args.includes("--no-unused");
   const asJson = args.includes("--json");
+  const translateMissing = args.includes("--translate-missing");
+  const translateEmpty = args.includes("--translate-empty");
+
+  if ((translateMissing || translateEmpty) && (!config.deepl || !config.deepl.enabled || !config.deepl.apiKey)) {
+    console.log("ℹ️ DeepL translation requested but disabled or missing apiKey in config.deepl.");
+  }
 
   // If JSON output, compute details without noisy logs
   if (asJson) {
+    // Apply optional fixes first so the report reflects the latest state
+    if (fix || addMissing || translateMissing || translateEmpty) {
+      await compareTranslations(
+        config.i18nPath,
+        config.referenceLang,
+        () => {},
+        {
+          fixExtras: fix,
+          addMissing,
+          seedMissingWithReference: seedMissing,
+          translateMissing,
+          translateEmpty,
+          deepl: config.deepl,
+        }
+      );
+    }
+
     const projectRoot = process.cwd();
     const usedMap = getUsedTranslationKeys(config.srcPath, projectRoot);
     const usedKeys = [...usedMap.keys()];
@@ -77,15 +114,6 @@ if (args.includes("--init")) {
       hardcodedFindings,
       unusedKeys,
     });
-    // Apply optional fixes if requested
-    if (fix || addMissing) {
-      compareTranslations(
-        config.i18nPath,
-        config.referenceLang,
-        () => {},
-        { fixExtras: fix, addMissing, seedMissingWithReference: seedMissing }
-      );
-    }
     console.log(JSON.stringify(report, null, 2));
     const hasDiffs =
       report.summary.missingUsedKeys > 0 ||
@@ -99,11 +127,18 @@ if (args.includes("--init")) {
     config.i18nPath,
     config.referenceLang
   );
-  const compareOk = compareTranslations(
+  const compareOk = await compareTranslations(
     config.i18nPath,
     config.referenceLang,
     console.log,
-    { fixExtras: fix, addMissing, seedMissingWithReference: seedMissing }
+    {
+      fixExtras: fix,
+      addMissing,
+      seedMissingWithReference: seedMissing,
+      translateMissing,
+      translateEmpty,
+      deepl: config.deepl,
+    }
   );
 
   let hardcodedOk = true;

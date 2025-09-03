@@ -9,6 +9,7 @@ Checks used translation keys in Angular projects against reference language JSON
 - Auto-fix: remove extra keys (`--fix-extras` or legacy `--fix`)
 - Auto-fix: add missing keys with empty strings (`--add-missing`)
 - Optional: seed missing keys with reference values (`--seed-missing`)
+- Translate missing/empty values via DeepL (`--translate-missing`, `--translate-empty`)
 - Report hardcoded text in HTML templates
 - Report unused keys in the reference file
 - JSON output for CI pipelines (`--json`)
@@ -35,6 +36,11 @@ Common options:
 - `--no-unused`: skip unused-keys report
 - `--json`: emit a machine-readable JSON report and exit with non-zero on issues
 
+DeepL options:
+
+- `--translate-missing`: add missing keys and translate their values from the reference via DeepL
+- `--translate-empty`: translate keys that exist but have empty values
+
 ## Configuration
 
 Create `i18n-check.config.json` or run `i18n-check --init`.
@@ -44,6 +50,20 @@ Create `i18n-check.config.json` or run `i18n-check --init`.
   "srcPath": "./src",
   "i18nPath": "./public/i18n",
   "referenceLang": "en.json",
+  "deepl": {
+    "enabled": false,
+    "apiKey": "<your key>",
+    "useFreeApi": true,
+    "sourceLang": "EN",
+    "targetLangMap": {
+      "de.json": "DE",
+      "fr.json": "FR"
+    },
+    "formality": "default",
+    "preserveFormatting": true,
+    "splitSentences": "1",
+    "timeoutMs": 15000
+  },
   "hardcoded": {
     "enabled": true,
     "minChars": 4,
@@ -60,4 +80,4 @@ Create `i18n-check.config.json` or run `i18n-check --init`.
 - JSON fixes preserve the original nested structure.
 - Only `.html` and `.ts` under `srcPath` are scanned.
 - For HTML, hardcoded checks use simple heuristics; tune via `hardcoded` config.
-
+- DeepL `apiKey` can also be provided via `DEEPL_API_KEY` env var.
