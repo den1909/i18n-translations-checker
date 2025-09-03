@@ -1,0 +1,5 @@
+{
+  "srcPath": "./src",
+  "i18nPath": "./public/i18n",
+  "referenceLang": "en.json"
+}
