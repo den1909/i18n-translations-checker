@@ -1,6 +1,6 @@
 {
   "name": "i18n-translations-checker",
-  "version": "2.6.0",
+  "version": "2.7.0",
   "description": "Checks used translation keys in Angular projects against reference language JSONs.",
   "bin": {
     "i18n-check": "./bin/i18n-check.js"
